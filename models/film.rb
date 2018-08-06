@@ -1,9 +1,10 @@
 require_relative("../db/sql_runner")
+require_relative("../models/screening")
 
 class Film
 
   attr_reader :id
-  attr_accessor :title, :price
+  attr_accessor :title, :price, :film_id
 
   def initialize(options)
     @id = options['id'] if options['id']
@@ -44,5 +45,21 @@ class Film
     sql = 'SELECT title FROM films GROUP BY title ORDER BY COUNT title DESC'
     SqlRunner.run(sql)
   end
+
+  def check_most_popular()
+   sql = "SELECT screenings.screening_time, COUNT (screenings.screening_time) FROM screenings INNER JOIN tickets ON screenings.id = screenings.ticket_id GROUP BY screenings.screening_time ORDER BY (screenings.screening_time) DESC LIMIT 1 WHERE screenings.film_id = $1"
+   values = [@id]
+   tickets = SqlRunner.run(sql, values)
+   tickets.map { |ticket| Ticket.new(ticket)}
+
+  end
+
+  #
+  # SELECT       `column`,
+  #            COUNT(`column`) AS `value_occurrence`
+  #   FROM     `my_table`
+  #   GROUP BY `column`
+  #   ORDER BY `value_occurrence` DESC
+  #   LIMIT    1;
 
 end
